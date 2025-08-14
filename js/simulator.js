@@ -9,6 +9,13 @@ let cable = { x: 200, y: canvas.height / 2, r: 20, dragging: false };
 let snapped = false;
 let ledProgress = 0;
 
+// LCD screen setup
+let lcd = { x: canvas.width/2 - 100, y: canvas.height/2 - 50, w: 200, h: 50 };
+let lcdText = "Arduino Simulator Booting...";
+let lcdIndex = 0;
+let lcdTimer = 0;
+let lcdSpeed = 5; // frames per character
+
 // Drag events
 canvas.addEventListener('mousedown', (e) => {
     let dx = e.clientX - cable.x;
@@ -23,6 +30,7 @@ canvas.addEventListener('mousemove', (e) => {
     }
 });
 
+// Draw functions
 function drawPort() {
     ctx.fillStyle = '#555';
     ctx.fillRect(port.x - port.w/2, port.y - port.h/2, port.w, port.h);
@@ -66,17 +74,41 @@ function drawLEDStrip() {
     }
 }
 
+function drawLCD() {
+    // LCD background
+    ctx.fillStyle = "#003300"; // dark green
+    ctx.fillRect(lcd.x, lcd.y, lcd.w, lcd.h);
+    ctx.strokeStyle = "lime";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(lcd.x, lcd.y, lcd.w, lcd.h);
+
+    // Typewriter text
+    ctx.fillStyle = "lime";
+    ctx.font = "20px monospace";
+    let displayText = lcdText.slice(0, lcdIndex);
+    ctx.fillText(displayText, lcd.x + 10, lcd.y + 30);
+
+    // Update text index
+    lcdTimer++;
+    if (lcdTimer % lcdSpeed === 0 && lcdIndex < lcdText.length) {
+        lcdIndex++;
+    }
+}
+
+// Main update loop
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (snapped) {
         drawLEDStrip();
         ledProgress += 5;
+        drawLCD();
     }
 
     drawPort();
     drawCable();
 
+    // Snap logic
     let dx = cable.x - port.x;
     let dy = cable.y - port.y;
     let dist = Math.sqrt(dx*dx + dy*dy);
@@ -90,4 +122,3 @@ function update() {
 }
 
 update();
-Remove-Item -Recurse -Force .git
